@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: #1a0a2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Quicksand', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 45%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 50%, rgba(255,255,255,0.5) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,150,180,0.3);
+    border-radius: 24px;
+    padding: 50px 60px;
+    text-align: center;
+    max-width: 520px;
+    width: 90%;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 60px rgba(255,80,120,0.15), 0 0 120px rgba(180,0,80,0.08);
+    position: relative;
+    z-index: 10;
+    transition: all 0.5s ease;
+  }
+
+  .question {
+    font-family: 'Dancing Script', cursive;
+    font-size: 2.4rem;
+    color: #ffb3c6;
+    margin-bottom: 32px;
+    line-height: 1.3;
+    text-shadow: 0 0 20px rgba(255,100,150,0.5);
+  }
+
+  .input-wrap {
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 16px 24px;
+    border-radius: 50px;
+    border: 2px solid rgba(255,150,180,0.4);
+    background: rgba(255,255,255,0.88);
+    color: #111;
+    font-size: 1.1rem;
+    font-family: 'Quicksand', sans-serif;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  input[type="text"]::placeholder { color: rgba(100,60,80,0.45); }
+
+  input[type="text"]:focus {
+    border-color: rgba(255,100,150,0.8);
+    box-shadow: 0 0 20px rgba(255,80,120,0.3);
+  }
+
+  button {
+    background: linear-gradient(135deg, #ff4d7a, #c9005c);
+    color: white;
+    border: none;
+    padding: 16px 48px;
+    border-radius: 50px;
+    font-size: 1.05rem;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 24px rgba(255,80,120,0.4);
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(255,80,120,0.6);
+  }
+
+  button:active { transform: translateY(0); }
+
+  .message {
+    display: none;
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.6rem;
+    color: #d4547a;
+    line-height: 1.7;
+    text-shadow: 0 0 16px rgba(180,60,100,0.3);
+    animation: fadeInUp 1s ease forwards;
+  }
+
+  .wrong-message {
+    display: none;
+    font-size: 1.1rem;
+    color: #c0185a;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    animation: shake 0.5s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(8px); }
+  }
+
+  /* ---- FLOATING HEARTS ---- */
+  .heart-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    display: none;
+  }
+
+  .heart {
+    position: absolute;
+    bottom: -60px;
+    font-size: 1.5rem;
+    animation: floatUp linear forwards;
+    opacity: 0;
+  }
+
+  @keyframes floatUp {
+    0%   { opacity: 0; transform: translateY(0) scale(0.5) rotate(0deg); }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.8; }
+    100% { opacity: 0; transform: translateY(-110vh) scale(1.2) rotate(20deg); }
+  }
+
+  /* ---- CANVAS FIREWORKS ---- */
+  #fireworks {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+    display: none;
+  }
+
+  .big-heart {
+    display: none;
+    font-size: 3rem;
+    animation: pulse 1s ease infinite alternate;
+    margin-bottom: 16px;
+  }
+
+  @keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.15); }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="fireworks"></canvas>
+<div class="heart-container" id="heartContainer"></div>
+
+<div class="card" id="mainCard">
+  <div class="big-heart" id="bigHeart">💖</div>
+  <div class="question" id="questionText">Who is the bestest ever?</div>
+
+  <div id="quizArea">
+    <div class="input-wrap">
+      <input type="text" id="answerInput" placeholder="Type your answer..." autocomplete="off" />
+    </div>
+    <button onclick="checkAnswer()">Submit ✨</button>
+  </div>
+
+  <div class="wrong-message" id="wrongMsg">That's wrong and always will be 😤</div>
+  <div class="message" id="loveMsg">
+    I love you the mostest ever my sweet little June berry.<br>
+    You're my forever and always.<br>
+    You're the mostest sweetest and prettiest<br>
+    and beautifulest and bestest and perfectest ever<br>
+    forever and always. 💖
+  </div>
+</div>
+
+<script>
+  const CORRECT = "janice";
+  const WRONG_SPECIAL = "landon";
+
+  function checkAnswer() {
+    const val = document.getElementById('answerInput').value.trim().toLowerCase();
+
+    if (val === CORRECT) {
+      showCelebration();
+    } else if (val === WRONG_SPECIAL) {
+      showWrong();
+    } else if (val === '') {
+      shakeInput();
+    } else {
+      showGenericWrong();
+    }
+  }
+
+  document.getElementById('answerInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkAnswer();
+  });
+
+  function shakeInput() {
+    const inp = document.getElementById('answerInput');
+    inp.style.animation = 'none';
+    inp.offsetHeight;
+    inp.style.animation = 'shake 0.5s ease';
+    setTimeout(() => inp.style.animation = '', 600);
+  }
+
+  function showWrong() {
+    document.getElementById('quizArea').style.display = 'none';
+    const w = document.getElementById('wrongMsg');
+    w.style.display = 'block';
+    w.style.animation = 'none';
+    w.offsetHeight;
+    w.style.animation = 'shake 0.5s ease, fadeInUp 0.6s ease';
+
+    setTimeout(() => {
+      // fade out the message
+      w.style.transition = 'opacity 0.6s ease';
+      w.style.opacity = '0';
+      setTimeout(() => {
+        w.style.display = 'none';
+        w.style.opacity = '1';
+        w.style.transition = '';
+        // reset input and show quiz again
+        document.getElementById('answerInput').value = '';
+        document.getElementById('quizArea').style.display = 'block';
+      }, 650);
+    }, 5000);
+  }
+
+  function showGenericWrong() {
+    const inp = document.getElementById('answerInput');
+    inp.style.borderColor = '#ff4d7a';
+    inp.style.boxShadow = '0 0 16px rgba(255,80,120,0.5)';
+    setTimeout(() => {
+      inp.style.borderColor = '';
+      inp.style.boxShadow = '';
+    }, 800);
+  }
+
+  function showCelebration() {
+    document.getElementById('quizArea').style.display = 'none';
+    document.getElementById('questionText').style.display = 'none';
+    document.getElementById('bigHeart').style.display = 'block';
+    document.getElementById('loveMsg').style.display = 'block';
+
+    // hearts
+    document.getElementById('heartContainer').style.display = 'block';
+    launchHearts();
+
+    // fireworks
+    const canvas = document.getElementById('fireworks');
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    runFireworks(canvas);
+  }
+
+  // ---- HEARTS ----
+  const heartEmojis = ['💖','💗','💝','💓','💞','💕','🌸','✨','💫','🌷'];
+
+  function launchHearts() {
+    for (let i = 0; i < 60; i++) {
+      setTimeout(() => spawnHeart(), i * 200);
+    }
+    setInterval(spawnHeart, 400);
+  }
+
+  function spawnHeart() {
+    const container = document.getElementById('heartContainer');
+    const h = document.createElement('div');
+    h.className = 'heart';
+    h.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+    const size = 1 + Math.random() * 1.5;
+    const dur = 4 + Math.random() * 4;
+    const left = Math.random() * 100;
+    h.style.cssText = `
+      left: ${left}vw;
+      font-size: ${size}rem;
+      animation-duration: ${dur}s;
+      animation-delay: ${Math.random() * 0.5}s;
+    `;
+    container.appendChild(h);
+    setTimeout(() => h.remove(), (dur + 1) * 1000);
+  }
+
+  // ---- FIREWORKS ----
+  function runFireworks(canvas) {
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const colors = ['#ff6b9d','#ff4d7a','#ffb3c6','#ff85a1','#ffd6e0','#c9ffd8','#a0f0ff','#ffe680','#ff9de2'];
+
+    function Particle(x, y, color) {
+      this.x = x; this.y = y;
+      this.color = color;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2 + Math.random() * 5;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.alpha = 1;
+      this.decay = 0.012 + Math.random() * 0.012;
+      this.radius = 2 + Math.random() * 3;
+    }
+
+    Particle.prototype.update = function() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.vy += 0.06;
+      this.vx *= 0.99;
+      this.alpha -= this.decay;
+    };
+
+    Particle.prototype.draw = function() {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, this.alpha);
+      ctx.fillStyle = this.color;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+
+    function burst(x, y) {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const count = 80 + Math.floor(Math.random() * 60);
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle(x, y, color));
+      }
+    }
+
+    // initial bursts
+    const positions = [
+      [0.2, 0.3],[0.5, 0.2],[0.8, 0.3],
+      [0.3, 0.6],[0.7, 0.6],[0.5, 0.45]
+    ];
+    positions.forEach(([rx, ry], i) => {
+      setTimeout(() => burst(canvas.width * rx, canvas.height * ry), i * 300);
+    });
+
+    // ongoing
+    setInterval(() => {
+      burst(
+        canvas.width * (0.1 + Math.random() * 0.8),
+        canvas.height * (0.1 + Math.random() * 0.6)
+      );
+    }, 800);
+
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].alpha <= 0) particles.splice(i, 1);
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  }
+</script>
+</body>
+</html>
